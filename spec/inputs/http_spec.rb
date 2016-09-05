@@ -132,6 +132,16 @@ describe LogStash::Inputs::Http do
       end
     end
 
+    context "when using default values" do
+      subject { LogStash::Inputs::Http.new("port" => port) }
+
+      describe "the response" do
+        it "should contain 'ok'" do
+          response = agent.post!("http://localhost:#{port}/meh", :body => "hello")
+          expect(response.body.read).to include('ok')
+        end
+      end
+    end
     context "when using custom headers" do
       let(:custom_headers) { { 'access-control-allow-origin' => '*' } }
       subject { LogStash::Inputs::Http.new("port" => port, "response_headers" => custom_headers) }
@@ -140,6 +150,17 @@ describe LogStash::Inputs::Http do
         it "should include the custom headers" do
           response = agent.post!("http://localhost:#{port}/meh", :body => "hello")
           expect(response.headers.to_hash).to include(custom_headers)
+        end
+      end
+    end
+    context "when using custom response body" do
+      let(:custom_response) { 'SOME STRING' }
+      subject { LogStash::Inputs::Http.new("port" => port, "response_body" => custom_response) }
+
+      describe "the response" do
+        it "should include the custom body" do
+          response = agent.post!("http://localhost:#{port}/meh", :body => "hello")
+          expect(response.body.read).to include(custom_response)
         end
       end
     end

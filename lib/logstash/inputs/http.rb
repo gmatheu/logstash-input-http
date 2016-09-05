@@ -12,7 +12,7 @@ require "rack"
 ##
 # We keep the redefined method in a new http server class, this is because
 # in other parts of logstash we might be using puma as webserver, for example
-# in the sinatra part we need this method to actually return the REQUEST_PATH, 
+# in the sinatra part we need this method to actually return the REQUEST_PATH,
 # so it can actually infer the right resource to use.
 # Fixes https://github.com/logstash-plugins/logstash-input-http/issues/51
 ##
@@ -23,7 +23,7 @@ end
 
 # Using this input you can receive single or multiline events over http(s).
 # Applications can send a HTTP POST request with a body to the endpoint started by this
-# input and Logstash will convert it into an event for subsequent processing. Users 
+# input and Logstash will convert it into an event for subsequent processing. Users
 # can pass plain text, JSON, or any formatted data and use a corresponding codec with this
 # input. For Content-Type `application/json` the `json` codec is used, but for all other
 # data formats, `plain` codec is used.
@@ -31,14 +31,14 @@ end
 # This input can also be used to receive webhook requests to integrate with other services
 # and applications. By taking advantage of the vast plugin ecosystem available in Logstash
 # you can trigger actionable events right from your application.
-# 
+#
 # ==== Security
 # This plugin supports standard HTTP basic authentication headers to identify the requester.
 # You can pass in an username, password combination while sending data to this input
 #
-# You can also setup SSL and send data securely over https, with an option of validating 
-# the client's certificate. Currently, the certificate setup is through 
-# https://docs.oracle.com/cd/E19509-01/820-3503/ggfen/index.html[Java Keystore 
+# You can also setup SSL and send data securely over https, with an option of validating
+# the client's certificate. Currently, the certificate setup is through
+# https://docs.oracle.com/cd/E19509-01/820-3503/ggfen/index.html[Java Keystore
 # format]
 #
 class LogStash::Inputs::Http < LogStash::Inputs::Base
@@ -87,6 +87,9 @@ class LogStash::Inputs::Http < LogStash::Inputs::Base
 
   # specify a custom set of response headers
   config :response_headers, :validate => :hash, :default => { 'Content-Type' => 'text/plain' }
+
+  # specify a custom fixed response body
+  config :response_body, :validate => :string , :default => "ok"
 
   # useless headers puma adds to the requests
   # mostly due to rack compliance
@@ -143,7 +146,7 @@ class LogStash::Inputs::Http < LogStash::Inputs::Base
           decorate(event)
           queue << event
         end
-        ['200', @response_headers, ['ok']]
+        ['200', @response_headers, [@response_body]]
       rescue => e
         @logger.error("unable to process event #{req.inspect}. exception => #{e.inspect}")
         ['500', @response_headers, ['internal error']]
